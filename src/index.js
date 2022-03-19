@@ -1,5 +1,8 @@
-const { airdropScript } = require("./scripts/airdrop-script");
+require("dotenv").config();
+const sendAirdrop = require("./scripts/sendAirdrop");
+const generateAirdropList = require("./scripts/generateAirdropList");
 const startScripts = () => {
-  airdropScript();
+  // generateAirdropList();
+  // sendAirdrop();
 };
 startScripts();

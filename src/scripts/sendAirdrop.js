@@ -1,7 +1,9 @@
 const fs = require("fs");
 const StellarSdk = require("stellar-sdk");
 const server = new StellarSdk.Server("https://horizon.stellar.org");
-const sourceKeys = StellarSdk.Keypair.fromSecret(/* wallet secret key */);
+const sourceKeys = StellarSdk.Keypair.fromSecret(
+  process.env.AIRDROP_SECRET_KEY
+);
 const { parse } = require("csv-parse");
 const { numOfTrans } = require("../utils/calcNumOfTrans");
 const { Asset } = require("stellar-sdk");
@@ -17,13 +19,13 @@ const sendAirdrops = async () => {
         console.log("number of trans:", transactionNum);
         // 2. Build transactions
         const sourceAccount = await server.loadAccount(sourceKeys.publicKey());
-        for (i = 0; i < 2; i++) {
+        for (i = 0; i < transactionNum; i++) {
           let transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
             fee: "10000", // transaction fee in troops
             networkPassphrase: StellarSdk.Networks.PUBLIC,
           });
           const batch = records.slice(i * 100, (i + 1) * 100);
-          console.log(batch.length, "current batch - num of users");
+          console.log("number of users in current batch:", batch.length);
           // attatch payment operation for all users in the current batch
           for (x = 0; x < batch.length; x++) {
             // determine claimable dates for each transaction (variable claimable dates)
@@ -32,15 +34,15 @@ const sendAirdrops = async () => {
             const limit = daysLimit * fracOfLimit;
 
             // create claimable conditions based on a time limit
-            let accountCondition =
-              StellarSdk.Claimant.predicateBeforeRelativeTime(limit.toString());
-            let ownerCondition = StellarSdk.Claimant.predicateNot(
-              StellarSdk.Claimant.predicateUnconditional()
-            );
+            let accountCondition = StellarSdk.Claimant.predicateUnconditional();
+            let ownerCondition = StellarSdk.Claimant.predicateUnconditional();
             transaction.addOperation(
               StellarSdk.Operation.createClaimableBalance({
-                asset: new Asset("CODE", "ISSUER"),
-                amount: "1000", // airdrop amount
+                asset: new Asset(
+                  "SHARK",
+                  "GABTJDQJALYXSUNQO3T637YR6FMO6H53UUMIBSDBTESKSFXQNMIEJUYX"
+                ),
+                amount: JSON.stringify(batch[x].amount), // airdrop amount
                 claimants: [
                   new StellarSdk.Claimant(batch[x].account, accountCondition),
                   new StellarSdk.Claimant(
@@ -52,7 +54,7 @@ const sendAirdrops = async () => {
             );
           }
           // add a memo
-          transaction.addMemo(StellarSdk.Memo.text("your token airdrop"));
+          transaction.addMemo(StellarSdk.Memo.text("SHARK token airdrop"));
           transaction.setTimeout(18640);
           transaction = transaction.build();
           transaction.sign(sourceKeys);
@@ -61,19 +63,19 @@ const sendAirdrops = async () => {
         //   5. Loop through transaction arr and submit each transaction. Moves to next one only if previous one was successful.
         console.log(transArr.length, "num of transactions created");
         for (let i = 0; i < transArr.length; i++) {
-          let result = await server.submitTransaction(transArr[i]);
+          // let result = await server.submitTransaction(transArr[i]);
           console.log(`Transaction ${i + 1} submitted successfully!`);
         }
       } catch (e) {
         if (e.response) {
           console.log(
-            "Token Server Error: ",
+            "Transaction Server Error: ",
             e.response.data.extras
               ? e.response.data.extras.result_codes
               : e.response.data
           );
         } else {
-          console.log("Token Build Error: ", e.message);
+          console.log("Transaction Build Error: ", e.message);
         }
       }
     }
@@ -81,10 +83,4 @@ const sendAirdrops = async () => {
   fs.createReadStream(__dirname + "/airdrop-reward-list.csv").pipe(parser);
 };
 
-const airdropScript = async () => {
-  sendAirdrops();
-};
-
-module.exports = {
-  airdropScript,
-};
+module.exports = sendAirdrops;
