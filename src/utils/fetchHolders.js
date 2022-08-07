@@ -8,7 +8,7 @@ const fetchHolders = async () => {
     for (i = 1; i > -1; i++) {
       // console.log("cursor", i === 1 ? 1 : (i - 1) * 200 + 1, "limit", i * 200);
       const fracOfHolders = await axios.get(
-        `https://api.stellar.expert/explorer/public/asset/SOLS-GAWTJMZIR4KPCZ7BQZK6QRAJYT6FOIM3YP2MKGWOYHPJYQQOIEJWFRED/holders?order=asc&cursor=${
+        `https://api.stellar.expert/explorer/public/asset/OCNT-GBTUK75C3YMYDQ2I7UFVI7C5VEXSPFCUTXGLSUTLVS7CUYFMC5ITCX7H/holders?order=asc&cursor=${
           i === 1 ? 0 : (i - 1) * 200
         }&limit=${i * 200}`
       );

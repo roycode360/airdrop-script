@@ -8,6 +8,8 @@ const { parse } = require("csv-parse");
 const { numOfTrans } = require("../utils/calcNumOfTrans");
 const { Asset } = require("stellar-sdk");
 
+// console.log(sourceKeys.publicKey());
+
 const sendAirdrops = async () => {
   const parser = parse(
     { columns: true, cast: true, delimiter: "," },
@@ -37,24 +39,18 @@ const sendAirdrops = async () => {
             let accountCondition = StellarSdk.Claimant.predicateUnconditional();
             let ownerCondition = StellarSdk.Claimant.predicateUnconditional();
             transaction.addOperation(
-              StellarSdk.Operation.createClaimableBalance({
+              StellarSdk.Operation.payment({
+                destination: batch[x].account,
                 asset: new Asset(
-                  "SHARK",
-                  "GABTJDQJALYXSUNQO3T637YR6FMO6H53UUMIBSDBTESKSFXQNMIEJUYX"
+                  "OCEANTOKEN",
+                  "GCWYGXMLDEQBIXT5IRLP6H3YYTJ6N43U2XX2EGJENNF4ACP7WOFCVYGO"
                 ),
-                amount: JSON.stringify(batch[x].amount), // airdrop amount
-                claimants: [
-                  new StellarSdk.Claimant(batch[x].account, accountCondition),
-                  new StellarSdk.Claimant(
-                    sourceKeys.publicKey(),
-                    ownerCondition
-                  ),
-                ],
+                amount: JSON.stringify(batch[x].reward),
               })
             );
           }
           // add a memo
-          transaction.addMemo(StellarSdk.Memo.text("SHARK token airdrop"));
+          transaction.addMemo(StellarSdk.Memo.text("OCNT dividends"));
           transaction.setTimeout(18640);
           transaction = transaction.build();
           transaction.sign(sourceKeys);
@@ -80,7 +76,7 @@ const sendAirdrops = async () => {
       }
     }
   );
-  fs.createReadStream(__dirname + "/airdrop-reward-list.csv").pipe(parser);
+  fs.createReadStream(__dirname + "/ocnt-reward-list.csv").pipe(parser);
 };
 
 module.exports = sendAirdrops;

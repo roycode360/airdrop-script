@@ -1,6 +1,8 @@
+const fs = require("fs");
 const StellarSdk = require("stellar-sdk");
 const server = new StellarSdk.Server("https://horizon.stellar.org");
 const axios = require("axios");
+const { stringify } = require("csv-stringify");
 
 const fetchMultipleHolders = async () => {
   const allHolders = [];
@@ -53,6 +55,17 @@ const fetchMultipleHolders = async () => {
     allHolders.push(...fracOfHolders.data._embedded.records);
   }
   console.log("Total holders", allHolders.length);
+  stringify(
+    allHolders,
+    {
+      header: true,
+    },
+    function (err, output) {
+      fs.writeFile(__dirname + "/airderop-list.csv", output, (err, data) => {
+        console.log("List generated!");
+      });
+    }
+  );
   return allHolders;
 };
 
